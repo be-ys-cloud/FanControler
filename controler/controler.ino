@@ -3,10 +3,10 @@
 #define DHTPIN       13 // Pin D13 Arduino. / DHT22 sensor
 
 #define FAN1PWM      3  // Pin D3 Arduino. / Fan 1 RWM from 0 to 255
-#define FAN2PWM      4  // Pin D4 Arduino. / Fan 2 RWM from 0 to 255
+#define FAN2PWM      10  // Pin D4 Arduino. / Fan 2 RWM from 0 to 255
 #define FAN3PWM      5  // Pin D5 Arduino. / Fan 3 RWM from 0 to 255
 #define FAN4PWM      6  // Pin D6 Arduino. / Fan 4 RWM from 0 to 255
-#define FAN5PWM      2  // Pin D7 Arduino. / Fan 5 RWM from 0 to 255
+#define FAN5PWM      9  // Pin D7 Arduino. / Fan 5 RWM from 0 to 255   2
 
 dht DHT;
 
@@ -16,11 +16,6 @@ float temp; //Stores temperature value
 
 //FAN variables
 int   speedFan = 0;
-int   speed_1 = 50; // Speed Fan 1 0-255
-int   speed_2 = 50; // Speed Fan 2 0-255
-int   speed_3 = 50; // Speed Fan 3 0-255
-int   speed_4 = 50; // Speed Fan 4 0-255
-int   speed_5 = 50; // Speed Fan 5 0-255
  
 void setup () {
   Serial.begin(9600);
@@ -62,17 +57,12 @@ void loop() {
   if (!isnan(temp)){
     speedFan = getSpeed(temp);
   }
-  speed_1 = speedFan;
-  speed_2 = speedFan;
-  speed_3 = speedFan;
-  speed_4 = speedFan;
-  speed_5 = speedFan;
 
-  analogWrite(FAN1PWM, speed_1);              // RPM du fan 1
-  analogWrite(FAN2PWM, speed_2);              // RPM du fan 2
-  analogWrite(FAN3PWM, speed_3);              // RPM du fan 3
-  analogWrite(FAN4PWM, speed_4);              // RPM du fan 4
-  analogWrite(FAN5PWM, speed_5);              // RPM du fan 5
+  analogWrite(FAN1PWM, speedFan);              // RPM du fan 1
+  analogWrite(FAN2PWM, speedFan);              // RPM du fan 2
+  analogWrite(FAN3PWM, speedFan);              // RPM du fan 3
+  analogWrite(FAN4PWM, speedFan);              // RPM du fan 4
+  analogWrite(FAN5PWM, speedFan);              // RPM du fan 5
 
   Serial.print("Speed fan                 = ");
   Serial.println(speedFan);
