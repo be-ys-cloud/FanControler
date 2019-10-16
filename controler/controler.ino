@@ -88,6 +88,17 @@ uint8_t pi[8] = {
 float temp; //Stores temperature value
 String dhtState;
 int dhtStateLCD;
+struct
+{
+    uint32_t total;
+    uint32_t ok;
+    uint32_t crc_error;
+    uint32_t time_out;
+    uint32_t connect;
+    uint32_t ack_l;
+    uint32_t ack_h;
+    uint32_t unknown;
+} stat = { 0,0,0,0,0,0,0,0};
 
 //FAN variables
 int speedFan = 0;
@@ -123,75 +134,119 @@ void StartLCD(){
 uint16_t wait = 0;
 
 void loop() {
-  if (wait % 100==0){
-    wait=0;
-    //Read data and store it to variables hum and temp
-    int chk = DHT.read22(DHTPIN);
-    
-    switch (chk){
-      case DHTLIB_OK:  
-        dhtState="OK"; 
-        dhtStateLCD=3;
-        break;
-      case DHTLIB_ERROR_CHECKSUM: 
-        dhtState="Checksum error"; 
-        dhtStateLCD=5;
-        break;
-      case DHTLIB_ERROR_TIMEOUT: 
-        dhtState="Time out error";
-        dhtStateLCD=5; 
-        break;
-      default: 
-        dhtState="Unknown error";
-        dhtStateLCD=4; 
-        break;
-    }
-    Serial.print("DHT22 Status              = ");
-    Serial.println(dhtState);
-    
-    temp= DHT.temperature;
-    
-    if (temp!=-999.00){
-      speedFan = getSpeed(temp);
-    }else{
-      temp=0;
-    }
+  //Read data and store it to variables hum and temp
+  int chk = DHT.read22(DHTPIN);
   
-    Serial.print("Temp                      = ");
-    Serial.print(temp);
-    Serial.println(" °C");
-
-    analogWrite(FAN1PWM, speedFan);              // RPM du fan 1
-    analogWrite(FAN2PWM, speedFan);              // RPM du fan 2
-    analogWrite(FAN3PWM, speedFan);              // RPM du fan 3
-    analogWrite(FAN4PWM, speedFan);              // RPM du fan 4
-    analogWrite(FAN5PWM, speedFan);              // RPM du fan 5
-  
-    Serial.print("Speed fan                 = ");
-    Serial.println(speedFan);
-    Serial.println();
-    
-    percentValue = (int)((speedFan/255.0)*100.0);
-    
-    lcd.setCursor(0, 0);   
-    
-    lcd.printByte(0);
-    lcd.printByte(1);
-    lcd.printByte(2);
-    
-    lcd.print(String(" - Status: "));
-    lcd.printByte(dhtStateLCD);
-    lcd.setCursor(0,1);
-    lcd.print(String(String(temp)+(char)223+" Spd:"+percentValue+(char)37));
-    lcd.print(String("   "));
+  stat.total++;
+  switch (chk){
+    case DHTLIB_OK:  
+      stat.ok++;
+      dhtState="OK"; 
+      dhtStateLCD=3;
+      break;
+    case DHTLIB_ERROR_CHECKSUM: 
+      stat.crc_error++;
+      dhtState="Checksum error"; 
+      dhtStateLCD=5;
+      break;
+    case DHTLIB_ERROR_TIMEOUT: 
+      stat.time_out++;
+      dhtState="Time out error";
+      dhtStateLCD=5; 
+      break;
+    case DHTLIB_ERROR_CONNECT:
+      stat.connect++;
+      dhtState="Connect error";
+      dhtStateLCD=4; 
+      break;
+    case DHTLIB_ERROR_ACK_L:
+      stat.ack_l++;
+      dhtState="Ack Low error";
+      dhtStateLCD=4; 
+      break;
+    case DHTLIB_ERROR_ACK_H:
+      stat.ack_h++;
+      dhtState="Ack High error";
+      dhtStateLCD=4; 
+      break;
+    default: 
+      stat.unknown++;
+      dhtState="Unknown error";
+      dhtStateLCD=4; 
+      break;
   }
+  Serial.print("DHT22 Status              = ");
+  Serial.println(dhtState);
+
+  if (stat.total % 10 == 0)
+  {
+      Serial.println("\nTOT\tOK\tCRC\tTO\tCON\tACK_L\tACK_H\tUNK");
+      Serial.print(stat.total);
+      Serial.print("\t");
+      Serial.print(stat.ok);
+      Serial.print("\t");
+      Serial.print(stat.crc_error);
+      Serial.print("\t");
+      Serial.print(stat.time_out);
+      Serial.print("\t");
+      Serial.print(stat.connect);
+      Serial.print("\t");
+      Serial.print(stat.ack_l);
+      Serial.print("\t");
+      Serial.print(stat.ack_h);
+      Serial.print("\t");
+      Serial.print(stat.unknown);
+      Serial.println("\n");
+  }
+  
+  temp= DHT.temperature;
+  
+  if (chk==DHTLIB_OK){
+    speedFan = getSpeed(temp);
+  }else{
+    temp     = 0;
+  }
+
+  Serial.print("Temp                      = ");
+  Serial.print(temp);
+  Serial.println(" °C");
+
+  // Pause 1 sec entre read digital et write digital
+  delay(1000);
+  analogWrite(FAN1PWM, speedFan);              // RPM du fan 1
+  analogWrite(FAN2PWM, speedFan);              // RPM du fan 2
+  analogWrite(FAN3PWM, speedFan);              // RPM du fan 3
+  analogWrite(FAN4PWM, speedFan);              // RPM du fan 4
+  analogWrite(FAN5PWM, speedFan);              // RPM du fan 5
+
+  Serial.print("Speed fan                 = ");
+  Serial.println(speedFan);
+  Serial.println();
+
+
+  // Pause 1 sec entre write digital et write analog
+  delay(1000);
+  
+  percentValue = (int)((speedFan/255.0)*100.0);
+
+  lcd.setCursor(0, 0);   
+  
+  lcd.printByte(0);
+  lcd.printByte(1);
+  lcd.printByte(2);
+  
+  lcd.print(String(" - Status: "));
+  lcd.printByte(dhtStateLCD);
+  lcd.setCursor(0,1);
+  lcd.print(String(String(temp)+(char)223+" Spd:"+percentValue+(char)37));
+  lcd.print(String("   "));
   
   if(digitalRead(LCDPIN)==HIGH){
     StartLCD();
   }else{
     StopLCD();
   }
-  
-  wait++;
-  delay(50);
+
+  // Pause 4 sec before loop
+  delay(4000);
 }
