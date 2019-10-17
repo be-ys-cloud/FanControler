@@ -1,90 +1,18 @@
 #include <dht.h>
+#include <SPI.h>
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
-#define LCDPIN       A3 // Pin D3 Arduino. / LCD Switch
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #define DHTPIN       13 // Pin D13 Arduino. / DHT22 sensor
-
 #define FAN1PWM      5  // Pin D5 Arduino. / Fan 1 RWM from 0 to 255
 #define FAN2PWM      6  // Pin D6 Arduino. / Fan 2 RWM from 0 to 255 
 #define FAN3PWM      9  // Pin D9 Arduino. / Fan 3 RWM from 0 to 255
 #define FAN4PWM      10  // Pin D10 Arduino. / Fan 4 RWM from 0 to 255
 #define FAN5PWM      11  // Pin D11 Arduino. / Fan 5 RWM from 0 to 255 
 
-#if defined(ARDUINO) && ARDUINO >= 100
-#define printByte(args)  write(args);
-#else
-#define printByte(args)  print(args,BYTE);
-#endif
-
-dht DHT;
-
-LiquidCrystal_I2C lcd(0x27, 20, 4);
-
-uint8_t check[8] ={
-  B00000,
-  B00001,
-  B00011,
-  B10110,
-  B11100,
-  B01000,
-  B00000,
-  B00000
-};
-
-uint8_t skull[8] ={
-  B00000,
-  B01110,
-  B10101,
-  B11011,
-  B01110,
-  B01110,
-  B00000,
-  B00000
-};
-
-uint8_t bell[8] ={
-  B00100,
-  B01110,
-  B01110,
-  B01110,
-  B11111,
-  B00000,
-  B00100,
-  B00000
-};
-
-//SigmaLambdaPi letters
-uint8_t sigma[8] = {
-  B11111,
-  B01000,
-  B00100,
-  B00010,
-  B00100,
-  B01000,
-  B11111
-};
-uint8_t lambda[8] = {
-  B00100,
-  B00100,
-  B01010,
-  B01010,
-  B01010,
-  B10001,
-  B10001
-};
-uint8_t pi[8] = {
-  B11111,
-  B10001,
-  B10001,
-  B10001,
-  B10001,
-  B10001,
-  B10001
-};
-
 //DHT22 variables
+dht DHT;
 float temp; //Stores temperature value
 String dhtState;
 int dhtStateLCD;
@@ -103,35 +31,95 @@ struct
 //FAN variables
 int speedFan = 0;
 int percentValue = 0;
- 
-void setup () {
-  Serial.begin(9600);
-  lcd.init(); // initialisation de l'afficheur
-  lcd.createChar(0, sigma);
-  lcd.createChar(1, lambda);
-  lcd.createChar(2, pi);  
-  lcd.createChar(3, check);
-  lcd.createChar(4, skull);
-  lcd.createChar(5, bell);
 
-  pinMode(LCDPIN, INPUT_PULLUP);
-}
+#define OLED_RESET 4
+Adafruit_SSD1306 display(OLED_RESET);
+
+static const unsigned char PROGMEM check[] ={
+  B00000,
+  B00001,
+  B00011,
+  B10110,
+  B11100,
+  B01000,
+  B00000,
+  B00000
+};
+static const unsigned char PROGMEM skull[] ={
+  B00000,
+  B01110,
+  B10101,
+  B11011,
+  B01110,
+  B01110,
+  B00000,
+  B00000
+};
+static const unsigned char PROGMEM bell[] ={
+  B00100,
+  B01110,
+  B01110,
+  B01110,
+  B11111,
+  B00000,
+  B00100,
+  B00000
+};
+static const unsigned char PROGMEM sigma[] = {
+  B11111,
+  B01000,
+  B00100,
+  B00010,
+  B00100,
+  B01000,
+  B11111
+};
+static const unsigned char PROGMEM lambda[] = {
+  B00100,
+  B00100,
+  B01010,
+  B01010,
+  B01010,
+  B10001,
+  B10001
+};
+static const unsigned char PROGMEM pi[] = {
+  B11111,
+  B10001,
+  B10001,
+  B10001,
+  B10001,
+  B10001,
+  B10001
+};
+static const unsigned char PROGMEM deg[] = {
+  B00010,
+  B00101,
+  B00010,
+  B00000,
+  B00000,
+  B00000,
+  B00000
+};
+
+// look at line 27 to 30 of Adafruit_SSD1306.h inside the library to select the dimensions
+#if (SSD1306_LCDHEIGHT != 32) // 
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
 
 int getSpeed(int temperature){
  return max(0,(temperature-20)*255/50);
 }
 
-void StopLCD(){
-  lcd.noDisplay();
-  lcd.noBacklight();
+void setup() {
+  Serial.begin(9600);
+  // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
+//  display.display();
+//  delay(2000);
+   // Clear the buffer.
+  display.clearDisplay();
 }
-
-void StartLCD(){
-  lcd.display();
-  lcd.backlight();
-}
-
-uint16_t wait = 0;
 
 void loop() {
   //Read data and store it to variables hum and temp
@@ -223,30 +211,49 @@ void loop() {
   Serial.println(speedFan);
   Serial.println();
 
-
   // Pause 1 sec entre write digital et write analog
   delay(1000);
   
-  percentValue = (int)((speedFan/255.0)*100.0);
+  display.clearDisplay();
+ 
+  display.drawBitmap(4, 3, sigma, 8, 7, 1); 
+  display.drawBitmap(4, 13, lambda, 8, 7, 1); 
+  display.drawBitmap(4, 23, pi, 8, 7, 1); 
 
-  lcd.setCursor(0, 0);   
+  robojaxText("Status:", 24, 3, 1, false, 1);
   
-  lcd.printByte(0);
-  lcd.printByte(1);
-  lcd.printByte(2);
+  robojaxText("Temp:", 24, 13, 1, false, 1);
+  robojaxText((String)temp, 65, 13, 1, false, 1);
+  robojaxText("C ", 103, 13, 1, false, 1);
+  display.drawBitmap(94, 13, deg, 8, 7, 1); 
   
-  lcd.print(String(" - Status: "));
-  lcd.printByte(dhtStateLCD);
-  lcd.setCursor(0,1);
-  lcd.print(String(String(temp)+(char)223+" Spd:"+percentValue+(char)37));
-  lcd.print(String("   "));
+  robojaxText("Speed:", 24, 23, 1, false, 1);
+  robojaxText((String)speedFan, 65, 23, 1, false, 1);
+  robojaxText("%", 79, 23, 1, false, 1);
   
-  if(digitalRead(LCDPIN)==HIGH){
-    StartLCD();
-  }else{
-    StopLCD();
+  switch (dhtStateLCD){
+    case 3 :
+    display.drawBitmap(65, 3, check, 8, 8, 1);
+    break;
+    case 4 :
+    display.drawBitmap(65, 3, skull, 8, 8, 1); 
+    break;
+    case 5 :
+    display.drawBitmap(65, 3, bell, 8, 8, 1); 
+    break;
   }
 
-  // Pause 4 sec before loop
-  delay(4000);
+   display.display();
+  // Pause 4 sec avant reboot
+   delay(4000); 
+}
+
+void robojaxText(String text, int x, int y,int size, boolean d, uint16_t color) {
+  display.setTextSize(size);
+  display.setTextColor(color);
+  display.setCursor(x,y);
+  display.println(text);
+  if(d){
+    display.display();
+  }
 }
