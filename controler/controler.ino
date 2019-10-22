@@ -12,10 +12,12 @@
 #define FAN5PWM      11  // Pin D11 Arduino. / Fan 5 RWM from 0 to 255 
 
 //DHT22 variables
-dht DHT;
-float temp; //Stores temperature value
-String dhtState;
-int dhtStateLCD;
+dht     DHT;
+float   temp; //Stores temperature value
+int     tempMin = 20;   // the temperature to start the fan
+int     tempMax = 70;   // the temperature for the max speed on the fan
+String  dhtState;
+int     dhtStateLCD;
 struct
 {
     uint32_t total;
@@ -29,8 +31,8 @@ struct
 } stat = { 0,0,0,0,0,0,0,0};
 
 //FAN variables
-int speedFan = 0;
-int percentValue = 0;
+int speedFan = 20;
+int percentSpeedFan =0;
 
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
@@ -108,21 +110,62 @@ static const unsigned char PROGMEM deg[] = {
 #endif
 
 int getSpeed(int temperature){
- return max(0,(temperature-20)*255/50);
+ //return speed between 0 and 255
+ //return min(max(0,(temperature-20)*255/50),255);
+ temperature = max(temperature,tempMin);
+ temperature = min(temperature,tempMax);
+ return map(temperature, tempMin, tempMax, 32, 255); // speed mini 21 - speed max 255
+}
+
+void drawSLP(){
+  display.drawBitmap(4, 3, sigma, 8, 7, 1); 
+  display.drawBitmap(4, 13, lambda, 8, 7, 1); 
+  display.drawBitmap(4, 23, pi, 8, 7, 1); 
 }
 
 void setup() {
+  pinMode(FAN1PWM, OUTPUT);
+  pinMode(FAN2PWM, OUTPUT);
+  pinMode(FAN3PWM, OUTPUT);
+  pinMode(FAN4PWM, OUTPUT);
+  pinMode(FAN5PWM, OUTPUT);
+   
   Serial.begin(9600);
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
-//  display.display();
-//  delay(2000);
-   // Clear the buffer.
+
+  delay(200);
+  
   display.clearDisplay();
+  drawSLP();
+  robojaxText("Server init ...", 24, 3, 1, false, 1);
+  display.display();
+  
+  delay(1000);
+  display.clearDisplay();
+  drawSLP();
+
+  int chk = DHT.read22(DHTPIN);
+  robojaxText("Server ok.", 24, 3, 1, false, 1);
+  robojaxText("Temp. init ...", 24, 13, 1, false, 1);
+  display.display();
+  
+  delay(1000); 
+  display.clearDisplay();
+  drawSLP();
+  robojaxText("Server ok.", 24, 3, 1, false, 1);
+  robojaxText("Temp. ok.", 24, 13, 1, false, 1);
+  robojaxText("Ready to go.", 24, 23, 1, false, 1);
+  display.display();
+  
+  delay(1000); 
 }
 
 void loop() {
-  //Read data and store it to variables hum and temp
+  // pause 1s
+  delay(1000);
+  
+  //Read data and store it to variables temp
   int chk = DHT.read22(DHTPIN);
   
   stat.total++;
@@ -163,41 +206,49 @@ void loop() {
       dhtStateLCD=4; 
       break;
   }
-  Serial.print("DHT22 Status              = ");
-  Serial.println(dhtState);
-
-  if (stat.total % 10 == 0)
-  {
-      Serial.println("\nTOT\tOK\tCRC\tTO\tCON\tACK_L\tACK_H\tUNK");
-      Serial.print(stat.total);
-      Serial.print("\t");
-      Serial.print(stat.ok);
-      Serial.print("\t");
-      Serial.print(stat.crc_error);
-      Serial.print("\t");
-      Serial.print(stat.time_out);
-      Serial.print("\t");
-      Serial.print(stat.connect);
-      Serial.print("\t");
-      Serial.print(stat.ack_l);
-      Serial.print("\t");
-      Serial.print(stat.ack_h);
-      Serial.print("\t");
-      Serial.print(stat.unknown);
-      Serial.println("\n");
-  }
-  
-  temp= DHT.temperature;
   
   if (chk==DHTLIB_OK){
+    temp= DHT.temperature;
     speedFan = getSpeed(temp);
   }else{
     temp     = 0;
   }
+  percentSpeedFan = speedFan*100/255;
 
-  Serial.print("Temp                      = ");
+  if (stat.total % 10 == 0){
+    //stats global
+    Serial.println("\nTOT\tOK\tCRC\tTO\tCON\tACK_L\tACK_H\tUNK");
+    Serial.print(stat.total);
+    Serial.print("\t");
+    Serial.print(stat.ok);
+    Serial.print("\t");
+    Serial.print(stat.crc_error);
+    Serial.print("\t");
+    Serial.print(stat.time_out);
+    Serial.print("\t");
+    Serial.print(stat.connect);
+    Serial.print("\t");
+    Serial.print(stat.ack_l);
+    Serial.print("\t");
+    Serial.print(stat.ack_h);
+    Serial.print("\t");
+    Serial.print(stat.unknown);
+    Serial.println("\n");
+  }
+  
+  Serial.print("DHT22 Status    = ");
+  Serial.println(dhtState);
+  
+  Serial.print("Temp            = ");
   Serial.print(temp);
   Serial.println(" °C");
+
+  Serial.print("Speed fan       = ");
+  Serial.print(speedFan);
+  Serial.print("/255 - ");
+  Serial.print(percentSpeedFan);
+  Serial.println("%");
+  Serial.println();
 
   // Pause 1 sec entre read digital et write digital
   delay(1000);
@@ -206,19 +257,12 @@ void loop() {
   analogWrite(FAN3PWM, speedFan);              // RPM du fan 3
   analogWrite(FAN4PWM, speedFan);              // RPM du fan 4
   analogWrite(FAN5PWM, speedFan);              // RPM du fan 5
-
-  Serial.print("Speed fan                 = ");
-  Serial.println(speedFan);
-  Serial.println();
-
+  
   // Pause 1 sec entre write digital et write analog
   delay(1000);
   
   display.clearDisplay();
- 
-  display.drawBitmap(4, 3, sigma, 8, 7, 1); 
-  display.drawBitmap(4, 13, lambda, 8, 7, 1); 
-  display.drawBitmap(4, 23, pi, 8, 7, 1); 
+  drawSLP();
 
   robojaxText("Status:", 24, 3, 1, false, 1);
   
@@ -228,7 +272,7 @@ void loop() {
   display.drawBitmap(94, 13, deg, 8, 7, 1); 
   
   robojaxText("Speed:", 24, 23, 1, false, 1);
-  robojaxText((String)speedFan, 65, 23, 1, false, 1);
+  robojaxText((String)percentSpeedFan, 65, 23, 1, false, 1);
   robojaxText("%", 79, 23, 1, false, 1);
   
   switch (dhtStateLCD){
@@ -244,8 +288,8 @@ void loop() {
   }
 
    display.display();
-  // Pause 4 sec avant reboot
-   delay(4000); 
+  // Pause 3 sec avant reboot
+   delay(3000); 
 }
 
 void robojaxText(String text, int x, int y,int size, boolean d, uint16_t color) {
