@@ -39,7 +39,7 @@ Le programme fonctionne avec les branchements suivant:
 
 ## Software
 
-Le programme lit la température sur la sonde thermiquie, puis ajuste la vitesse des ventilateurs dans la plage 20°C à 70°C.
+Le programme lit la température sur la sonde, puis ajuste la vitesse des ventilateurs dans la plage 20°C à 70°C.
 
 Il faut ajouter la lib [DHTLIB](https://github.com/be-ys/Arduino/tree/master/libraries/DHTlib) au projet, et inclure les bibliothèques Arduino LiquidCrystal version 1.0.7, Adafruit GFX Library 1.5.7, Adafruit SSD1306 version 1.3.0 et LuiquidCrystal I2C 1.1.2.
 
