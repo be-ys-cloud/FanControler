@@ -45,7 +45,7 @@ Il faut ajouter la lib [DHTLIB](https://github.com/be-ys/Arduino/tree/master/lib
 
 ## Resultat
 
-L'écran affichant l'éta de la sonde de temérature, la température et la vitesse:
+L'écran affichant l'état de la sonde de température, la température et la vitesse:
 
 ![OLED](images/oled.jpg)
 
