@@ -5,15 +5,15 @@
 #include <Adafruit_SSD1306.h>
 
 #define DHTPIN       13 // Pin D13 Arduino. / DHT22 sensor
-#define FAN1PWM      5  // Pin D5 Arduino. / Fan 1 RWM from 0 to 255
-#define FAN2PWM      6  // Pin D6 Arduino. / Fan 2 RWM from 0 to 255 
-#define FAN3PWM      9  // Pin D9 Arduino. / Fan 3 RWM from 0 to 255
-#define FAN4PWM      10  // Pin D10 Arduino. / Fan 4 RWM from 0 to 255
-#define FAN5PWM      11  // Pin D11 Arduino. / Fan 5 RWM from 0 to 255 
+#define FAN1PWM      5  // Pin D5 Arduino. / Fan 1 PWM from 0 to 255
+#define FAN2PWM      6  // Pin D6 Arduino. / Fan 2 PWM from 0 to 255 
+#define FAN3PWM      9  // Pin D9 Arduino. / Fan 3 PWM from 0 to 255
+#define FAN4PWM      10  // Pin D10 Arduino. / Fan 4 PWM from 0 to 255
+#define FAN5PWM      11  // Pin D11 Arduino. / Fan 5 PWM from 0 to 255 
 
 //DHT22 variables
 dht     DHT;
-float   temp; //Stores temperature value
+float   temp;           //Stores temperature value
 int     tempMin = 20;   // the temperature to start the fan
 int     tempMax = 70;   // the temperature for the max speed on the fan
 String  dhtState;
