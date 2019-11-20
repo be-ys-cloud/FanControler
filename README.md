@@ -43,3 +43,12 @@ Le programme lit la température sur la sonde thermiquie, puis ajuste la vitesse
 
 Il faut ajouter la lib [DHTLIB](https://github.com/be-ys/Arduino/tree/master/libraries/DHTlib) au projet, et inclure les bibliothèques Arduino LiquidCrystal version 1.0.7, Adafruit GFX Library 1.5.7, Adafruit SSD1306 version 1.3.0 et LuiquidCrystal I2C 1.1.2.
 
+## Resultat
+
+L'écran affichant l'éta de la sonde de temérature, la température et la vitesse:
+
+![OLED](images/oled.jpg)
+
+Un cas de test avec un Arduino nano :
+
+![test](images/test.jpg)
