@@ -1,27 +1,27 @@
 # FanContoler
 
-Ce programme permet de controler la vitesse de 5 ventilateurs en fonction de la température et d'afficher les informations sur un écran LCD.
+This software will control the speed of 5 fans depending on the current temperature. It will also print status information on the LCD screen.
 
 ## Hardware
 
-### Composants
+### Components
 
-Matériel nécessaire: 
+Required materials: 
 
-- 5 ventilateurs PWM (Pulse Width Modulation)
-- une sonde de température DHT22
-- un résistance de 4.7k
-- un écran OLED I2C Display SSD1306 128x32
+- 5 PWM Fans (Pulse Width Modulation)
+- 1 temp/humidity sensor DHT22
+- a 4.7k resistor
+- a screen OLED I2C Display SSD1306 128x32
 - Arduino
-- Une alimentation 12V
+- 12V power supply
 
-### Montage
+### Assembly
 
-![Montage](images/FanControler.png)
+![Assembly](images/FanControler.png)
 
-### Connexions
+### Connections
 
-Le programme fonctionne avec les branchements suivant:
+The software is expecting the following connections:
 
 - D5 : PWM Command Fan #1
 - D6 : PWM Command Fan #2
@@ -39,16 +39,16 @@ Le programme fonctionne avec les branchements suivant:
 
 ## Software
 
-Le programme lit la température sur la sonde, puis ajuste la vitesse des ventilateurs dans la plage 20°C à 70°C.
+The software will read the sensor's temperature and then adjust the fans speed in the range 20°C to 70°C.
 
-Il faut ajouter la lib [DHTLIB](https://github.com/be-ys/Arduino/tree/master/libraries/DHTlib) au projet, et inclure les bibliothèques Arduino LiquidCrystal version 1.0.7, Adafruit GFX Library 1.5.7, Adafruit SSD1306 version 1.3.0 et LuiquidCrystal I2C 1.1.2.
+You must include the library [DHTLIB](https://github.com/be-ys/Arduino/tree/master/libraries/DHTlib) to the project and the following Arduino libraries: LiquidCrystal version 1.0.7, Adafruit GFX Library 1.5.7, Adafruit SSD1306 version 1.3.0 and LuiquidCrystal I2C 1.1.2.
 
-## Resultat
+## Results
 
-L'écran affichant l'état de la sonde de température, la température et la vitesse:
+The screen is showing the status of the sensor, the temperature and the current speed:
 
 ![OLED](images/oled.jpg)
 
-Un cas de test avec un Arduino nano :
+Testing it with an Arduino nano:
 
 ![test](images/test.jpg)
