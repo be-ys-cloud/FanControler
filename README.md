@@ -1,4 +1,4 @@
-# FanContoler
+# FanControler
 
 This software will control the speed of 5 fans depending on the current temperature. It will also print status information on the LCD screen.
 
