@@ -1,4 +1,4 @@
-# FanContoler
+# FanControler
 
 Ce programme permet de contrôler la vitesse de 5 ventilateurs en fonction de la température et d'afficher les informations sur un écran LCD.
 
